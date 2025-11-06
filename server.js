@@ -9,11 +9,12 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Servir o arquivo HTML
-app.use(express.static(__dirname));
+//Rota raiz - servir o arquivo HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'zap.html'));
+});
 
 let client = null;
-let wsConnection = null;
 
 // Função para criar cliente WhatsApp
 function createWhatsAppClient(ws) {
@@ -393,3 +394,4 @@ server.listen(PORT, HOST, () => {
     console.log(`   Use: http://${localIP}:${PORT}`);
     console.log(`═══════════════════════════════════════════════════════`);
 });
+
