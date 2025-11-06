@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automação WhatsApp - Restaurante</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #25D366;
+        }
+
+        .section h2 {
+            color: #128C7E;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #25D366;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .qr-container img {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+
+        .client-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .client-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .client-item button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .contacts-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .contact-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: #e9ecef;
+        }
+
+        .contact-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .contact-number {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .select-all-container {
+            padding: 10px;
+            background: #e7f3ff;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .select-all-container input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .search-contacts {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .contacts-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976D2;
+        }
+
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #25D366, #128C7E);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Automação WhatsApp - Restaurante</h1>
+            <p>Gerencie e envie mensagens automáticas para seus clientes</p>
+        </div>
+
+        <div class="content">
+            <!-- Seção de Conexão -->
+            <div class="section">
+                <h2>📱 Conexão WhatsApp</h2>
+                <div id="status" class="status disconnected">
+                    Desconectado - Clique em "Conectar WhatsApp" para começar
+                </div>
+                <div class="qr-container" id="qrContainer">
+                    <p>Clique em "Conectar WhatsApp" para ver o QR Code</p>
+                </div>
+                <button class="btn" id="connectBtn" onclick="connectWhatsApp()">
+                    Conectar WhatsApp
+                </button>
+                <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectWhatsApp()" style="display: none; margin-top: 10px;">
+                    Desconectar
+                </button>
+                <button class="btn" id="retryBtn" onclick="connectWhatsApp()" style="display: none; margin-top: 10px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                    🔄 Tentar Conectar Novamente
+                </button>
+            </div>
+
+            <!-- Seção de Mensagem -->
+            <div class="section">
+                <h2>✉️ Mensagem Personalizada</h2>
+                <div class="form-group">
+                    <label for="message">Digite a mensagem que será enviada:</label>
+                    <textarea id="message" placeholder="Ex: Olá! Seu pedido está pronto para retirada. Obrigado pela preferência! 🍽️"></textarea>
+                </div>
+            </div>
+
+            <!-- Seção de Clientes -->
+            <div class="section">
+                <h2>👥 Selecionar Clientes</h2>
+                
+                <!-- Contatos do WhatsApp -->
+                <div id="contactsSection" style="display: none;">
+                    <div class="form-group">
+                        <label>Contatos do WhatsApp (selecione os que deseja enviar mensagem):</label>
+                        <input type="text" id="searchContacts" class="search-contacts" placeholder="🔍 Buscar contato..." onkeyup="filterContacts()">
+                        <div class="select-all-container">
+                            <input type="checkbox" id="selectAllContacts" onchange="toggleAllContacts()">
+                            <label for="selectAllContacts" style="cursor: pointer; font-weight: 600;">Selecionar Todos</label>
+                        </div>
+                    </div>
+                    <div class="contacts-container" id="contactsContainer">
+                        <p class="contacts-loading">Carregando contatos...</p>
+                    </div>
+                </div>
+
+                <!-- Adicionar manualmente -->
+                <div class="form-group" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
+                    <label for="clientNumber">Ou adicionar número manualmente (com DDD e código do país):</label>
+                    <input type="text" id="clientNumber" placeholder="Ex: 5511999999999 (55 = Brasil, 11 = DDD, 999999999 = número)">
+                    <button class="btn" onclick="addClient()" style="margin-top: 10px;">
+                        Adicionar Cliente
+                    </button>
+                </div>
+                <div class="client-list" id="clientList">
+                    <p style="text-align: center; color: #999; padding: 20px;">
+                        Nenhum cliente adicionado ainda
+                    </p>
+                </div>
+            </div>
+
+            <!-- Seção de Envio -->
+            <div class="section">
+                <h2>🚀 Enviar Mensagens</h2>
+                <div class="info-box">
+                    <p><strong>⚠️ Importante:</strong></p>
+                    <p>• As mensagens serão enviadas com intervalo de 10 segundos entre cada cliente</p>
+                    <p>• Isso ajuda a evitar bloqueios do WhatsApp</p>
+                    <p>• Certifique-se de estar conectado antes de enviar</p>
+                </div>
+                <div class="progress" id="progressContainer">
+                    <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+                <button class="btn" id="sendBtn" onclick="sendMessages()" disabled>
+                    Enviar Mensagens para Todos
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let clients = [];
+        let isConnected = false;
+        let ws = null;
+        let allContacts = [];
+        let selectedContacts = new Set();
+
+        // Função para conectar ao servidor WebSocket
+        function connectWhatsApp() {
+            const statusDiv = document.getElementById('status');
+            const qrContainer = document.getElementById('qrContainer');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const retryBtn = document.getElementById('retryBtn');
+
+            // Fechar conexão anterior se existir
+            if (ws && ws.readyState !== WebSocket.CLOSED) {
+                ws.close();
+            }
+
+            statusDiv.className = 'status connecting';
+            statusDiv.textContent = 'Conectando ao servidor...';
+            connectBtn.style.display = 'none';
+            retryBtn.style.display = 'none';
+
+            // Conectar ao servidor WebSocket (assumindo que está rodando na porta 3000)
+            try {
+                ws = new WebSocket('ws://localhost:3000');
+            } catch (error) {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = '❌ Erro ao criar conexão WebSocket: ' + error.message;
+                connectBtn.style.display = 'block';
+                retryBtn.style.display = 'block';
+                return;
+            }
+
+            ws.onopen = function() {
+                console.log('WebSocket conectado!');
+                statusDiv.className = 'status connecting';
+                statusDiv.textContent = 'Conectado! Aguardando QR Code...';
+                qrContainer.innerHTML = '<p style="color: #666;">Aguardando QR Code...</p>';
+                try {
+                    ws.send(JSON.stringify({ action: 'connect' }));
+                } catch (error) {
+                    console.error('Erro ao enviar mensagem:', error);
+                }
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'qr') {
+                    qrContainer.innerHTML = `<img src="${data.qr}" alt="QR Code">`;
+                    statusDiv.className = 'status connecting';
+                    statusDiv.textContent = 'Escaneie o QR Code com seu WhatsApp';
+                } else if (data.type === 'ready') {
+                    statusDiv.className = 'status connected';
+                    statusDiv.textContent = '✅ Conectado ao WhatsApp! Carregando contatos...';
+                    isConnected = true;
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'block';
+                    document.getElementById('sendBtn').disabled = false;
+                    qrContainer.innerHTML = '<p style="color: green; font-weight: bold;">✅ WhatsApp conectado com sucesso!</p>';
+                } else if (data.type === 'contacts') {
+                    allContacts = data.contacts;
+                    // Selecionar automaticamente todos os contatos
+                    selectedContacts.clear();
+                    clients = [];
+                    data.contacts.forEach(contact => {
+                        const contactId = (contact.id || contact.number || '').replace('@c.us', '').replace('@s.whatsapp.net', '');
+                        const contactNumber = contact.number || contactId;
+                        selectedContacts.add(contactNumber);
+                        if (!clients.includes(contactNumber)) {
+                            clients.push(contactNumber);
+                        }
+                    });
+                    displayContacts(data.contacts);
+                    updateClientList();
+                    // Marcar checkbox "Selecionar Todos" como marcado
+                    const selectAllCheckbox = document.getElementById('selectAllContacts');
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = true;
+                    }
+                    statusDiv.textContent = `✅ Conectado ao WhatsApp! (${data.contacts.length} contatos encontrados e selecionados automaticamente)`;
+                } else if (data.type === 'error') {
+                    statusDiv.className = 'status disconnected';
+                    statusDiv.textContent = '❌ Erro: ' + data.message;
+                } else if (data.type === 'messageStatus') {
+                    updateProgress(data);
+                }
+            };
+
+            ws.onerror = function(error) {
+                statusDiv.className = 'status disconnected';
+                statusDiv.textContent = '❌ Erro ao conectar ao servidor. Verifique se o servidor está rodando!';
+                connectBtn.style.display = 'none';
+                document.getElementById('retryBtn').style.display = 'block';
+                qrContainer.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <p style="color: #dc3545; font-weight: bold; margin-bottom: 10px;">❌ Servidor não encontrado!</p>
+                        <p style="color: #666; margin-bottom: 15px;">Para iniciar o servidor:</p>
+                        <ol style="text-align: left; display: inline-block; color: #666;">
+                            <li>Abra o PowerShell ou Prompt de Comando</li>
+                            <li>Navegue até: <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">cd C:\\Users\\user\\zap-automation</code></li>
+                            <li>Execute: <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">npm start</code></li>
+                            <li>OU clique duas vezes no arquivo <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">iniciar-servidor.bat</code></li>
+                            <li>Aguarde a mensagem "Servidor rodando em http://localhost:3000"</li>
+                            <li>Clique em "Tentar Conectar Novamente" abaixo</li>
+                        </ol>
+                    </div>
+                `;
+            };
+
+            ws.onclose = function(event) {
+                statusDiv.className = 'status disconnected';
+                if (event.code === 1006 || !event.wasClean) {
+                    statusDiv.textContent = '❌ Servidor não está rodando! Inicie o servidor primeiro.';
+                    connectBtn.style.display = 'none';
+                    document.getElementById('retryBtn').style.display = 'block';
+                    qrContainer.innerHTML = `
+                        <div style="padding: 20px; text-align: center;">
+                            <p style="color: #dc3545; font-weight: bold; margin-bottom: 10px;">❌ Servidor não encontrado!</p>
+                            <p style="color: #666; margin-bottom: 15px;">Para iniciar o servidor:</p>
+                            <ol style="text-align: left; display: inline-block; color: #666;">
+                                <li>Abra o PowerShell ou Prompt de Comando</li>
+                                <li>Navegue até: <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">cd C:\\Users\\user\\zap-automation</code></li>
+                                <li>Execute: <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">npm start</code></li>
+                                <li>OU clique duas vezes no arquivo <code style="background: #f0f0f0; padding: 2px 5px; border-radius: 3px;">iniciar-servidor.bat</code></li>
+                                <li>Aguarde a mensagem "Servidor rodando em http://localhost:3000"</li>
+                                <li>Clique em "Tentar Conectar Novamente" abaixo</li>
+                            </ol>
+                        </div>
+                    `;
+                } else {
+                    statusDiv.textContent = 'Desconectado do servidor';
+                    connectBtn.style.display = 'block';
+                }
+                isConnected = false;
+                disconnectBtn.style.display = 'none';
+                document.getElementById('sendBtn').disabled = true;
+            };
+        }
+
+        function disconnectWhatsApp() {
+            if (ws) {
+                ws.send(JSON.stringify({ action: 'disconnect' }));
+                ws.close();
+            }
+        }
+
+        function addClient() {
+            const input = document.getElementById('clientNumber');
+            const number = input.value.trim().replace(/\D/g, ''); // Remove caracteres não numéricos
+
+            if (number.length < 10) {
+                alert('Por favor, insira um número válido com DDD e código do país');
+                return;
+            }
+
+            if (clients.includes(number)) {
+                alert('Este número já está na lista');
+                return;
+            }
+
+            clients.push(number);
+            input.value = '';
+            updateClientList();
+        }
+
+        function removeClient(number) {
+            clients = clients.filter(c => c !== number);
+            selectedContacts.delete(number);
+            // Desmarcar checkbox se existir
+            const checkbox = document.getElementById(`contact_${number}`);
+            if (checkbox) {
+                checkbox.checked = false;
+            }
+            updateClientList();
+            updateSelectAllCheckbox();
+        }
+
+        function updateClientList() {
+            const listDiv = document.getElementById('clientList');
+            
+            if (clients.length === 0) {
+                listDiv.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Nenhum cliente adicionado ainda</p>';
+                return;
+            }
+
+            listDiv.innerHTML = clients.map(number => `
+                <div class="client-item">
+                    <span>${formatNumber(number)}</span>
+                    <button onclick="removeClient('${number}')">Remover</button>
+                </div>
+            `).join('');
+        }
+
+        function formatNumber(number) {
+            // Formata o número para exibição
+            if (number.startsWith('55')) {
+                return `+${number.substring(0, 2)} (${number.substring(2, 4)}) ${number.substring(4, 9)}-${number.substring(9)}`;
+            }
+            return number;
+        }
+
+        function sendMessages() {
+            const message = document.getElementById('message').value.trim();
+            
+            if (!message) {
+                alert('Por favor, digite uma mensagem');
+                return;
+            }
+
+            if (clients.length === 0) {
+                alert('Por favor, adicione pelo menos um cliente');
+                return;
+            }
+
+            if (!isConnected) {
+                alert('Por favor, conecte-se ao WhatsApp primeiro');
+                return;
+            }
+
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('Conexão perdida. Por favor, reconecte ao WhatsApp');
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Enviando...';
+
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            ws.send(JSON.stringify({
+                action: 'sendMessages',
+                clients: clients,
+                message: message
+            }));
+        }
+
+        function updateProgress(data) {
+            const progressBar = document.getElementById('progressBar');
+            const sendBtn = document.getElementById('sendBtn');
+            
+            if (data.status === 'sending') {
+                const progress = ((data.sent / data.total) * 100).toFixed(0);
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = `${progress}% (${data.sent}/${data.total})`;
+            } else if (data.status === 'completed') {
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100% - Concluído!';
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Enviar Mensagens para Todos';
+                alert('Todas as mensagens foram enviadas com sucesso!');
+            } else if (data.status === 'error') {
+                alert('Erro ao enviar mensagem: ' + data.message);
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Enviar Mensagens para Todos';
+            }
+        }
+
+        // Função para exibir contatos
+        function displayContacts(contacts) {
+            const container = document.getElementById('contactsContainer');
+            const section = document.getElementById('contactsSection');
+            
+            if (contacts.length === 0) {
+                container.innerHTML = '<p class="contacts-loading">Nenhum contato encontrado</p>';
+                return;
+            }
+            
+            section.style.display = 'block';
+            container.innerHTML = contacts.map(contact => {
+                const contactId = (contact.id || contact.number || '').replace('@c.us', '').replace('@s.whatsapp.net', '');
+                const contactNumber = contact.number || contactId;
+                const isChecked = selectedContacts.has(contactNumber);
+                const safeName = (contact.name || 'Sem nome').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `
+                    <div class="contact-item" onclick="toggleContact('${contactNumber}', '${safeName}')">
+                        <input type="checkbox" id="contact_${contactNumber}" ${isChecked ? 'checked' : ''} onchange="toggleContact('${contactNumber}', '${safeName}')">
+                        <div class="contact-info">
+                            <div class="contact-name">${contact.name || 'Sem nome'}</div>
+                            <div class="contact-number">${formatNumber(contactNumber)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Atualizar checkbox "Selecionar Todos" após exibir contatos
+            updateSelectAllCheckbox();
+        }
+
+        // Função para alternar seleção de contato
+        function toggleContact(contactId, contactName) {
+            const checkbox = document.getElementById(`contact_${contactId}`);
+            
+            if (checkbox.checked) {
+                selectedContacts.add(contactId);
+                if (!clients.includes(contactId)) {
+                    clients.push(contactId);
+                }
+            } else {
+                selectedContacts.delete(contactId);
+                clients = clients.filter(c => c !== contactId);
+            }
+            
+            updateClientList();
+            updateSelectAllCheckbox();
+        }
+
+        // Função para selecionar/desselecionar todos
+        function toggleAllContacts() {
+            const selectAll = document.getElementById('selectAllContacts');
+            const isChecked = selectAll.checked;
+            
+            allContacts.forEach(contact => {
+                const contactId = (contact.id || contact.number || '').replace('@c.us', '').replace('@s.whatsapp.net', '');
+                const contactNumber = contact.number || contactId;
+                const checkbox = document.getElementById(`contact_${contactNumber}`);
+                
+                if (checkbox) {
+                    checkbox.checked = isChecked;
+                    
+                    if (isChecked) {
+                        selectedContacts.add(contactNumber);
+                        if (!clients.includes(contactNumber)) {
+                            clients.push(contactNumber);
+                        }
+                    } else {
+                        selectedContacts.delete(contactNumber);
+                        clients = clients.filter(c => c !== contactNumber);
+                    }
+                }
+            });
+            
+            updateClientList();
+        }
+
+        // Atualizar checkbox "Selecionar Todos"
+        function updateSelectAllCheckbox() {
+            const selectAll = document.getElementById('selectAllContacts');
+            if (selectAll && allContacts.length > 0) {
+                const allSelected = allContacts.every(contact => {
+                    const contactId = (contact.id || contact.number || '').replace('@c.us', '').replace('@s.whatsapp.net', '');
+                    const contactNumber = contact.number || contactId;
+                    return selectedContacts.has(contactNumber);
+                });
+                selectAll.checked = allSelected;
+            }
+        }
+
+        // Função para filtrar contatos
+        function filterContacts() {
+            const searchTerm = document.getElementById('searchContacts').value.toLowerCase();
+            const container = document.getElementById('contactsContainer');
+            
+            if (!searchTerm) {
+                displayContacts(allContacts);
+                return;
+            }
+            
+            const filtered = allContacts.filter(contact => 
+                contact.name.toLowerCase().includes(searchTerm) ||
+                contact.number.includes(searchTerm)
+            );
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<p class="contacts-loading">Nenhum contato encontrado</p>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(contact => {
+                const contactId = (contact.id || contact.number || '').replace('@c.us', '').replace('@s.whatsapp.net', '');
+                const contactNumber = contact.number || contactId;
+                const isChecked = selectedContacts.has(contactNumber);
+                const safeName = (contact.name || 'Sem nome').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                return `
+                    <div class="contact-item" onclick="toggleContact('${contactNumber}', '${safeName}')">
+                        <input type="checkbox" id="contact_${contactNumber}" ${isChecked ? 'checked' : ''} onchange="toggleContact('${contactNumber}', '${safeName}')">
+                        <div class="contact-info">
+                            <div class="contact-name">${contact.name || 'Sem nome'}</div>
+                            <div class="contact-number">${formatNumber(contactNumber)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Permitir adicionar cliente pressionando Enter
+        document.getElementById('clientNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addClient();
+            }
+        });
+    </script>
+</body>
+</html>
