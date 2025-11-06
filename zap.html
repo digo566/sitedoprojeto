@@ -430,9 +430,18 @@
             connectBtn.style.display = 'none';
             retryBtn.style.display = 'none';
 
-            // Conectar ao servidor WebSocket (assumindo que está rodando na porta 3000)
+            // Detectar URL do WebSocket automaticamente
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsHost = window.location.hostname;
+            const wsPort = window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
+            // Para Render e outras plataformas, usar a mesma porta do HTTP ou porta padrão
+            const wsUrl = wsPort === '80' || wsPort === '443' || wsPort === '' 
+                ? `${wsProtocol}//${wsHost}` 
+                : `${wsProtocol}//${wsHost}:${wsPort}`;
+            
+            // Conectar ao servidor WebSocket
             try {
-                ws = new WebSocket('ws://localhost:3000');
+                ws = new WebSocket(wsUrl);
             } catch (error) {
                 statusDiv.className = 'status disconnected';
                 statusDiv.textContent = '❌ Erro ao criar conexão WebSocket: ' + error.message;
